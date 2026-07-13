@@ -812,7 +812,7 @@ export function MainCanvas() {
   const selectionPhaseRef = useRef<SelectionPhase>('idle')
   const carouselTargetRotationRef = useRef(0)
 
-  const touchStartRef = useRef<number | null>(null) // Store the initial touch position for swipe detection
+  //const touchStartRef = useRef<number | null>(null)  Store the initial touch position for swipe detection
 
   const selectCard = (index: number) => {
     selectionPhaseRef.current = 'selecting'
