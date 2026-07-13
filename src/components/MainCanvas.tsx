@@ -5,10 +5,24 @@ import {
   MeshTransmissionMaterial,
   useFBO,
   useTexture,
+  Text, 
+  RoundedBox,
 } from '@react-three/drei'
 import { motion } from 'motion/react'
 import type { WheelEvent } from 'react'
 import * as THREE from 'three'
+
+const HEADER_TITLES = [
+  'World360-AI',
+  'About',
+  'Highlights',
+  'Research',
+  'Projects',
+  'Events',
+  'Media',
+  'References',
+  'Internal',
+]
 
 const PROJECT_IMAGE_URLS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
   .split('')
@@ -80,6 +94,8 @@ type MobiusCardProps = {
   selectedIndex: number | null
   onSelectCard: (index: number, mesh: THREE.Mesh, texture: THREE.Texture) => void
   onDeselect: () => void
+  setActiveHoverIndex: (index: number | null) => void
+  currentTitle: string // Nova prop para passar o título mapeado do Header correto para este card
 }
 
 function getShortestPhaseDelta(from: number, to: number) {
@@ -159,16 +175,21 @@ function MobiusCard({
   selectedIndex,
   onSelectCard,
   onDeselect,
+  setActiveHoverIndex,
+  currentTitle,
 }: MobiusCardProps) {
   const imageRef = useRef<THREE.Mesh>(null)
+  const textGroupRef = useRef<THREE.Group>(null)
+  const bgMatRef = useRef<THREE.MeshBasicMaterial>(null)
   const point = useRef(new THREE.Vector3())
   const [hovered, setHovered] = useState(false)
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const image = imageRef.current
+    const textGroup = textGroupRef.current
+    const activeHover = hovered && selectedIndex === null
 
     if (image) {
-      const activeHover = hovered && selectedIndex === null
       const geometry = image.geometry
       const position = geometry.attributes.position as THREE.BufferAttribute
       const uv = geometry.attributes.uv as THREE.BufferAttribute
@@ -214,40 +235,156 @@ function MobiusCard({
         delta,
       )
     }
+
+    if (textGroup) {
+      const textMesh = textGroup.children[1] as THREE.Mesh
+      if (textMesh) {
+        const mat = textMesh.material as THREE.MeshBasicMaterial
+        
+        if (imageRef.current) {
+          const posAttr = imageRef.current.geometry.attributes.position as THREE.BufferAttribute
+          
+          const centerIndex = 555 
+          const rightIndex = 556
+          const upIndex = 454 
+
+          const pC = new THREE.Vector3().fromBufferAttribute(posAttr, centerIndex)
+          
+          const worldPc = pC.clone().applyMatrix4(imageRef.current.matrixWorld)
+          const distanceToCamera = state.camera.position.distanceTo(worldPc)
+
+          if (activeHover && distanceToCamera > 9.8) {
+            setHovered(false)
+            setActiveHoverIndex(null)
+          }
+          
+          const pR = new THREE.Vector3().fromBufferAttribute(posAttr, rightIndex)
+          const pU = new THREE.Vector3().fromBufferAttribute(posAttr, upIndex)
+          
+          const vRight = new THREE.Vector3().subVectors(pR, pC).normalize()
+          const vUp = new THREE.Vector3().subVectors(pU, pC).normalize()
+          const vNormal = new THREE.Vector3().crossVectors(vRight, vUp).normalize()
+
+          const rotationMatrix = new THREE.Matrix4().makeBasis(vRight, vUp, vNormal)
+          textGroup.quaternion.setFromRotationMatrix(rotationMatrix)
+
+          const worldUpCheck = vUp.clone().applyQuaternion(textGroup.quaternion)
+          const toCam = new THREE.Vector3().subVectors(state.camera.position, pC).normalize()
+          if (worldUpCheck.y < 0 || vNormal.dot(toCam) < 0) {
+            textGroup.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI))
+          }
+
+          const tiltAngle = -0.15 
+          textGroup.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), tiltAngle))
+
+          const offset = new THREE.Vector3()
+            .addScaledVector(vUp, -0.4) 
+            .addScaledVector(vNormal, 0.05) 
+          
+          textGroup.position.copy(pC).add(offset)
+        }
+
+        const targetOpacity = activeHover ? 1 : 0
+        mat.opacity = THREE.MathUtils.damp(mat.opacity, targetOpacity, 12, delta)
+        
+        if (bgMatRef.current) {
+          bgMatRef.current.opacity = THREE.MathUtils.damp(bgMatRef.current.opacity, targetOpacity, 12, delta)
+        }
+      }
+    }
+    
   })
 
+  // Largura agora é maior (0.032 de espaçamento por letra + margem de segurança de 0.08)
+  const bgWidth = currentTitle.length * 0.032 + 0.08
+
   return (
-    <Image
-      ref={imageRef}
-      texture={texture}
-      scale={[1, 1]}
-      radius={CARD_RADIUS}
-      zoom={1}
-      transparent
-      side={THREE.DoubleSide}
-      visible={selectedIndex !== index}
-      onPointerOver={(event) => {
-        event.stopPropagation()
-        setHovered(true)
-      }}
-      onPointerOut={() => setHovered(false)}
-      onClick={(event) => {
-        event.stopPropagation()
+    <group>
+      <Image
+        ref={imageRef}
+        texture={texture}
+        scale={[1, 1]}
+        radius={CARD_RADIUS}
+        zoom={1}
+        transparent
+        side={THREE.DoubleSide}
+        visible={selectedIndex !== index}
+        onPointerOver={(event) => {
+          event.stopPropagation()
 
-        if (selectedIndex !== null) {
-          onDeselect()
-          return
-        }
+          if (event.distance > 9.8) return
 
-        if (hovered && imageRef.current) {
-          onSelectCard(index, imageRef.current, texture)
-        }
-      }}>
-      <planeGeometry args={[1, 1, 100, 10]} />
-    </Image>
+          setHovered(true)
+          if (selectedIndex === null) setActiveHoverIndex(index)
+        }}
+        onPointerOut={() => {
+          setHovered(false)
+          setActiveHoverIndex(null)
+        }}
+        onClick={(event) => {
+          event.stopPropagation()
+
+          if (selectedIndex !== null) {
+            onDeselect()
+            return
+          }
+
+          if (hovered && imageRef.current) {
+            onSelectCard(index, imageRef.current, texture)
+            setActiveHoverIndex(null)
+          }
+        }}>
+        <planeGeometry args={[1, 1, 100, 10]} />
+      </Image>
+
+      <group ref={textGroupRef}>
+        {/* Usando RoundedBox para criar o efeito de "pílula" ou bordas suaves */}
+        <RoundedBox 
+          args={[bgWidth, 0.09, 0.001]} // [largura aumentada, altura aumentada, espessura fina]
+          radius={0.02} // O quão arredondada será a borda
+          smoothness={4} // Resolução das curvas da borda
+          position={[0, 0, -0.005]} 
+          renderOrder={99998}
+        >
+          <meshBasicMaterial 
+            ref={bgMatRef}
+            color="#ffffff" 
+            transparent 
+            opacity={0} 
+            depthTest={true} 
+            depthWrite={false}
+            polygonOffset={true}
+            polygonOffsetFactor={-90} 
+            polygonOffsetUnits={-90}
+          />
+        </RoundedBox>
+
+        <Text
+          fontWeight="bold" // Força a renderização da fonte em negrito
+          // font={FONTE_URL} // Descomente e use isso caso tenha mantido o arquivo .ttf no seu projeto
+          fontSize={0.05} 
+          color="#000000"
+          anchorX="center"
+          anchorY="middle"
+          renderOrder={99999}
+        >
+          {currentTitle}
+          <meshBasicMaterial 
+            attach="material" 
+            color="#000000" 
+            transparent 
+            opacity={0} 
+            depthTest={true} 
+            depthWrite={false}
+            polygonOffset={true}
+            polygonOffsetFactor={-100} 
+            polygonOffsetUnits={-100}
+          />
+        </Text>
+      </group>
+    </group>
   )
 }
-
 type SelectedMobiusCardProps = {
   selectedIndex: number | null
   selectedSlotIndexRef: MutableRefObject<number | null>
@@ -550,7 +687,7 @@ type SelectedCardTextOverlayProps = {
 function SelectedCardTextOverlay({ visible }: SelectedCardTextOverlayProps) {
   return (
     <aside
-      className="selection-info ${visible ? 'is-visible' : ''}"
+      className={`selection-info ${visible ? 'is-visible' : ''}`}
       aria-hidden={!visible}
     >
       <motion.ul
@@ -633,6 +770,8 @@ function MobiusCarousel({
     })
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null)
   const [selectedTexture, setSelectedTexture] = useState<THREE.Texture | null>(null)
+  
+  const [activeHoverIndex, setActiveHoverIndex] = useState<number | null>(null)
 
   const selectCard = (index: number, mesh: THREE.Mesh, texture: THREE.Texture) => {
     const position = mesh.geometry.attributes.position as THREE.BufferAttribute
@@ -770,6 +909,11 @@ function MobiusCarousel({
         <group ref={carouselRef}>
           {Array.from({ length: count }, (_, index) => {
             const cardLength = MOBIUS_CARD_LENGTH_RATIO / count
+            
+            // Resolve dinamicamente o título correspondente ao Header para este slot específico
+            const activeProjectIndex = getSlotProjectIndex(index, count, rotationTextureState)
+            const titleIndex = THREE.MathUtils.euclideanModulo(activeProjectIndex, HEADER_TITLES.length)
+            const currentTitle = HEADER_TITLES[titleIndex]
 
             return (
               <MobiusCard
@@ -785,6 +929,8 @@ function MobiusCarousel({
                 selectedIndex={selectedSlotIndex}
                 onSelectCard={selectCard}
                 onDeselect={onDeselect}
+                setActiveHoverIndex={setActiveHoverIndex}
+                currentTitle={currentTitle} // Injetado aqui
               />
             )
           })}
@@ -812,8 +958,6 @@ export function MainCanvas() {
   const selectionPhaseRef = useRef<SelectionPhase>('idle')
   const carouselTargetRotationRef = useRef(0)
 
-  //const touchStartRef = useRef<number | null>(null)  Store the initial touch position for swipe detection
-
   const selectCard = (index: number) => {
     selectionPhaseRef.current = 'selecting'
     setSelectionTextVisible(true)
@@ -833,7 +977,6 @@ export function MainCanvas() {
     setSelectedIndex(null)
   }
 
-  // Mouse scroll (Desktop)
   const rotateCarousel = (event: WheelEvent<HTMLDivElement>) => {
     if (selectedIndex !== null) {
       return
@@ -843,33 +986,6 @@ export function MainCanvas() {
       event.deltaY * WHEEL_ROTATION_SENSITIVITY
   }
 
-  /*
-  // Start touch (Mobile) 
-  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
-    if (selectedIndex !== null || event.touches.length === 0) return
-    // Save X or Y touch position 
-    touchStartRef.current = event.touches[0].clientX
-  }
-
-  // Touch movement (Mobile)
-  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    if (selectedIndex !== null || touchStartRef.current === null || event.touches.length === 0) return
-
-    const currentX = event.touches[0].clientX
-    const deltaX = touchStartRef.current - currentX
-    const TOUCH_SENSITIVITY = 0.0015 
-    
-    carouselTargetRotationRef.current += deltaX * TOUCH_SENSITIVITY
-
-    // Refresh the start point to make the next movement frame fluid 
-    touchStartRef.current = currentX
-  }
-  
-  // End touch(Mobile)
-  const handleTouchEnd = () => {
-    touchStartRef.current = null
-  }
-  */
   return (
     <>
       <Canvas
@@ -882,7 +998,6 @@ export function MainCanvas() {
           }
         }}
       >
-        
         <color attach="background" args={["#667889"]} />
         <fog attach="fog" args={["#667889", 8.5, 12]} />
         <Suspense fallback={null}>
