@@ -35,8 +35,9 @@ a {
   z-index: 1;
   display: flex;
   align-items: center;
-  height: var(--header-height);
+  height: var(--header-height);  
   padding: 0 clamp(1rem, 4vw, 2.5rem);
+  padding-left: calc(clamp(1rem, 4vw, 2.5rem) - 14px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   background: rgba(102, 120, 137, 0.82);
   backdrop-filter: blur(18px);
@@ -166,28 +167,27 @@ a {
 
 @media (max-width: 640px) {
   :root {
-    --header-height: auto; /* Permite que a header aumente de altura para acomodar as linhas de links */
+    --header-height: auto; 
   }
 
   .site-header {
-    padding: 1.2rem; /* Espaçamento interno confortável ao redor do menu */
-    height: auto;  /* Altura dinâmica */
+    padding: 1.2rem; 
+    height: auto; 
   }
 
-  /* Transforma a nav em um bloco flexível que joga os links para baixo ao tocar na borda da tela */
   .site-nav {
     display: flex;
-    flex-wrap: wrap;         /* Ativa a quebra de linha automática do texto */
-    justify-content: center; /* Centraliza horizontalmente todos os links na tela */
-    gap: 0.8rem 1.2rem;      /* Espaçamento vertical (0.8rem) e horizontal (1.2rem) entre os links */
+    flex-wrap: wrap;         
+    justify-content: center; 
+    gap: 0.8rem 1.2rem;      
     width: 100%;
     text-align: center;
   }
 
   .group-name {
     display: block;
-    width: 100%;             /* Força o título "World360-AI" a ficar sozinho no topo em uma linha exclusiva */
-    margin-bottom: 0.2rem;   /* Separa ligeiramente o título das opções de baixo */
+    width: 100%;            
+    margin-bottom: 0.2rem;   
     font-size: 1rem;
   }
 
@@ -260,6 +260,7 @@ a {
 
   .site-header {
     padding: 1.2rem;
+    padding-left: calc(clamp(1rem, 4vw, 2.5rem) - 26px);
     height: auto;
   }
 
