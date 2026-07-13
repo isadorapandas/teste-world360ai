@@ -771,7 +771,7 @@ function MobiusCarousel({
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null)
   const [selectedTexture, setSelectedTexture] = useState<THREE.Texture | null>(null)
   
-  const [activeHoverIndex, setActiveHoverIndex] = useState<number | null>(null)
+  const [, setActiveHoverIndex] = useState<number | null>(null)
 
   const selectCard = (index: number, mesh: THREE.Mesh, texture: THREE.Texture) => {
     const position = mesh.geometry.attributes.position as THREE.BufferAttribute
