@@ -7,7 +7,7 @@ export function Header() {
   return (
     <header className="site-header">
       <nav className="site-nav" aria-label="Primary navigation">
-        <a className="group-name" href={baseUrl}>
+        <a className="group-name" href={baseUrl}> 
           World360-AI
         </a>
         
@@ -31,6 +31,9 @@ export function Header() {
         </a>
         <a className="nav-link" href={`${baseUrl}references.html`}>
           References
+        </a>
+        <a className="nav-link internal" href={`${baseUrl}internal.html`}>
+          Internal
         </a>
       </nav>
     </header>

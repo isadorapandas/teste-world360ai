@@ -46,6 +46,7 @@ a {
   display: flex;
   align-items: center;
   gap: clamp(1rem, 3vw, 2rem);
+  flex-grow: 1;
 }
 
 .group-name,
@@ -73,6 +74,10 @@ a {
 .nav-link:focus-visible {
   color: #000000;
   transform: translateY(-1px);
+}
+
+.nav-link.internal {
+  margin-left: auto;
 }
 
 .canvas-shell {
@@ -228,6 +233,10 @@ a {
     display: inline-block;
   }
 
+  .nav-link.internal {
+    margin-left: 0; 
+  }
+
   .canvas-shell {
     height: calc(100svh - 110px); 
     min-height: 360px;
@@ -267,7 +276,7 @@ a {
     max-width: 100%;
     margin-top: 0.8rem;
     font-size: 0.92rem;
-    line-height: 1.4; /* 0.8 */
+    line-height: 1.4;
   }
 
   .footer-container {
@@ -293,6 +302,10 @@ a {
     justify-content: center;
     gap: 0.8rem 1.5rem;
     width: 100%;
+  }
+  
+  .nav-link.internal {
+    margin-left: 0; 
   }
 
   .canvas-shell {
