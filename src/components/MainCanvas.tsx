@@ -843,6 +843,7 @@ export function MainCanvas() {
       event.deltaY * WHEEL_ROTATION_SENSITIVITY
   }
 
+  /*
   // Start touch (Mobile) 
   const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
     if (selectedIndex !== null || event.touches.length === 0) return
@@ -863,12 +864,12 @@ export function MainCanvas() {
     // Refresh the start point to make the next movement frame fluid 
     touchStartRef.current = currentX
   }
-
+  
   // End touch(Mobile)
   const handleTouchEnd = () => {
     touchStartRef.current = null
   }
-
+  */
   return (
     <>
       <Canvas
