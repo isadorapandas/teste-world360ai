@@ -3,10 +3,11 @@ import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 
 export default defineConfig({
+  base: './',
   plugins: [react()],
   build: {
     rollupOptions: {
-      input: {
+      input: {        
         main: resolve(__dirname, 'index.html'),
         about: resolve(__dirname, 'about.html'),
         highlights: resolve(__dirname, 'highlights.html'),
