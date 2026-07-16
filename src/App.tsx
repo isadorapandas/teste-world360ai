@@ -7,7 +7,7 @@ export function App() {
     <>
       <Header />
       <motion.main
-        className="canvas-shell"
+        className="canvas-shell-main"
         style={{ flex: 1, position: 'relative' }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

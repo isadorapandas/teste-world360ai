@@ -5,7 +5,7 @@ export function Header() {
     : `${import.meta.env.BASE_URL}/`;
 
   return (
-    <header className="site-header">
+    <header className="site-header-main">
       <nav className="site-nav" aria-label="Primary navigation">
         <a className="group-name" href={baseUrl}> 
           World360-AI

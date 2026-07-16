@@ -399,7 +399,7 @@ function SelectedMobiusCard({
     up.current.setFromMatrixColumn(state.camera.matrixWorld, 1).normalize()
 
     if (isPortrait || isTabletOrMobile) {
-      center.current.addScaledVector(up.current, viewport.height * 0.15)
+      center.current.addScaledVector(up.current, viewport.height * 0.19)
     } else {
       center.current.addScaledVector(right.current, -viewport.width * SELECTED_CARD_LEFT_OFFSET)
     }
@@ -633,11 +633,11 @@ function SelectedCardTextOverlay({ visible, item }: SelectedCardTextOverlayProps
 
   return (
     <aside
-      className={`selection-info${visible ? ' is-visible' : ''}`}
+      className={`selection-info-card${visible ? ' is-visible' : ''}`}
       aria-hidden={!visible}
     >
       <motion.ul
-        className="selection-info-list"
+        className="selection-info-list-card"
         variants={textContainerVariants}
         initial="hidden"
         animate={visible ? 'show' : 'hidden'}
@@ -674,6 +674,7 @@ function SelectedCardTextOverlay({ visible, item }: SelectedCardTextOverlayProps
           </motion.div>
         </li>
       </motion.ul>
+      <br/>
     </aside>
   )
 }
